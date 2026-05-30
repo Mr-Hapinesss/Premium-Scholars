@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+uploads/beauty/*
+uploads/requirements/*
+uploads/news/*
+!uploads/beauty/.gitkeep
+!uploads/requirements/.gitkeep
+!uploads/news/.gitkeep
