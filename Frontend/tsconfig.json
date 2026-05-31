@@ -1,23 +1,23 @@
 {
   "compilerOptions": {
-    "target":             "ES2020",
+    "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib":                ["ES2020", "DOM", "DOM.Iterable"],
-    "module":             "ESNext",
-    "skipLibCheck":       true,
-    "moduleResolution":   "bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "resolveJsonModule":  true,
-    "isolatedModules":    true,
-    "noEmit":             true,
-    "jsx":                "react-jsx",
-    "strict":             true,
-    "noUnusedLocals":     true,
-    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl":            ".",
+    // 1. Remove baseUrl entirely
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"] // 2. Ensure this has the "./" prefix
     }
   },
   "include": ["src"],

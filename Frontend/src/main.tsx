@@ -4,7 +4,10 @@ import App from './App'
 import './styles/globals.css'
 import { ToastProvider } from './components/shared/Toast'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')
+if (!rootElement) throw new Error('Root element not found. Check index.html for <div id="root" />')
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ToastProvider>
       <App />

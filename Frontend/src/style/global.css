@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-sky-50 text-sky-900 font-body;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: #bae6fd;
+    color: #075985;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f0f9ff;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #bae6fd;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #38bdf8;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-sky-600 text-white rounded-xl font-semibold
+           hover:bg-sky-700 transition-colors duration-200 disabled:opacity-50
+           disabled:cursor-not-allowed;
+  }
+
+  .btn-gold {
+    @apply px-6 py-3 bg-yellow-400 text-sky-900 rounded-xl font-semibold
+           hover:bg-yellow-500 transition-colors duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-sky-100 shadow-sm
+           hover:shadow-md transition-shadow duration-200;
+  }
+
+  .input-base {
+    @apply w-full px-4 py-3 rounded-xl border border-sky-200
+           focus:outline-none focus:border-sky-400 bg-sky-50
+           text-sky-800 text-sm transition-colors duration-200;
+  }
+
+  .section-label {
+    @apply text-yellow-500 font-semibold tracking-widest uppercase text-sm;
+  }
+
+  .page-container {
+    @apply max-w-6xl mx-auto px-6;
+  }
+
+  .spinner {
+    @apply w-8 h-8 rounded-full border-4 border-sky-200 border-t-yellow-400 animate-spin;
+  }
+}
