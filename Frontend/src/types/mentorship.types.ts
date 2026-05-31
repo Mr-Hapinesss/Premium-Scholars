@@ -18,4 +18,5 @@ export interface Mentor {
 
 export interface MentorStats {
   menteeCount: number
+  recentActivity: any[] // You can swap 'any' for a specific Activity interface later if you want
 }

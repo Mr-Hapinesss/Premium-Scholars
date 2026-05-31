@@ -1,11 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
-import './styles/globals.css'
 import { ToastProvider } from './components/shared/Toast'
+import App from './App'
+import './style/global.css'
 
 const rootElement = document.getElementById('root')
-if (!rootElement) throw new Error('Root element not found. Check index.html for <div id="root" />')
+if (!rootElement) {
+  throw new Error(
+    'Could not find #root element. Make sure index.html has <div id="root"></div>'
+  )
+}
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>

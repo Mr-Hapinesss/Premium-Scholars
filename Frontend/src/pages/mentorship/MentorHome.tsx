@@ -3,13 +3,16 @@ import { Link } from 'react-router-dom'
 import Navbar from '../../components/shared/Navbar'
 import { useAuth } from '../../context/AuthContext'
 import { mentorshipService } from '../../services/mentorship.service'
+import { MentorStats } from '../../types/mentorship.types'
 
 export default function MentorHome() {
   const { user } = useAuth()
-  const [stats, setStats] = useState({ menteeCount: 0, recentActivity: [] as any[] })
+  const [stats, setStats] = useState<MentorStats>({ menteeCount: 0, recentActivity: [] as any[] })
 
   useEffect(() => {
-    mentorshipService.getMentorStats().then(setStats)
+    mentorshipService.getMentorStats().then((data) => {
+      setStats(data)
+    })
   }, [])
 
   return (

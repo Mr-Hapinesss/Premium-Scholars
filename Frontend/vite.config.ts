@@ -9,15 +9,20 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  css: {
+    // PostCSS config is auto-detected from postcss.config.cjs in the root
+    // This block is here explicitly to confirm Vite is processing CSS
+    devSourcemap: true,
+  },
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target:       'http://localhost:5000',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:5000',
+        target:       'http://localhost:5000',
         changeOrigin: true,
       },
     },

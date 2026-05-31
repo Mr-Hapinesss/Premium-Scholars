@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../../components/shared/Navbar'
 import Footer from '../../components/shared/Footer'
-import ProductGrid from '../../components/beauty/ProductGrid'
+import ProductGrid from '../../components/Beauty/ProductGrid'
 import { beautyService } from '../../services/beauty.service'
 import { BeautyProduct } from '../../types/product.types'
 import { useDebounce } from '../../hooks/useDebounce'

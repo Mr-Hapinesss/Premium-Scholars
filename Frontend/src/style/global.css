@@ -1,85 +1,120 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
+/* ==========================================================================
+   1. THEME CONFIGURATION (New Tailwind v4 Format)
+   ========================================================================== */
+@theme {
+  /* Inject custom gold colors so utilities like bg-gold-400 and text-gold-500 work */
+  --color-gold-400: #facc15; /* Standard Tailwind v3 Gold/Yellow-400 equivalent. Adjust hex if needed. */
+  --color-gold-500: #eab308; /* Standard Tailwind v3 Gold/Yellow-500 equivalent. Adjust hex if needed. */
+
+  /* Register font families */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+
+  /* Register custom animations and keyframes */
+  --animate-scroll-left: scrollLeft 30s linear infinite;
+  --animate-fade-up: fadeUp 0.6s ease forwards;
+  --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+
+  @keyframes scrollLeft {
+    to { transform: translateX(-50%); }
   }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-
-  body {
-    @apply bg-sky-50 text-sky-900 font-body;
-    overflow-x: hidden;
-    min-height: 100vh;
-  }
-
-  ::selection {
-    background-color: #bae6fd;
-    color: #075985;
-  }
-
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #f0f9ff;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #bae6fd;
-    border-radius: 9999px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #38bdf8;
-  }
-
-  h1, h2, h3, h4 {
-    @apply font-display;
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply px-6 py-3 bg-sky-600 text-white rounded-xl font-semibold
-           hover:bg-sky-700 transition-colors duration-200 disabled:opacity-50
-           disabled:cursor-not-allowed;
-  }
-
-  .btn-gold {
-    @apply px-6 py-3 bg-yellow-400 text-sky-900 rounded-xl font-semibold
-           hover:bg-yellow-500 transition-colors duration-200;
-  }
-
-  .card {
-    @apply bg-white rounded-2xl border border-sky-100 shadow-sm
-           hover:shadow-md transition-shadow duration-200;
-  }
-
-  .input-base {
-    @apply w-full px-4 py-3 rounded-xl border border-sky-200
-           focus:outline-none focus:border-sky-400 bg-sky-50
-           text-sky-800 text-sm transition-colors duration-200;
-  }
-
-  .section-label {
-    @apply text-yellow-500 font-semibold tracking-widest uppercase text-sm;
-  }
-
-  .page-container {
-    @apply max-w-6xl mx-auto px-6;
-  }
-
-  .spinner {
-    @apply w-8 h-8 rounded-full border-4 border-sky-200 border-t-yellow-400 animate-spin;
-  }
+/* ==========================================================================
+   2. BASE STYLES (Standard CSS cascade replaces @layer base)
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: #f0f9ff;
+  color: #0c4a6e;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: #bae6fd;
+  color: #075985;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f9ff;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #7dd3fc;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}
+
+/* ==========================================================================
+   3. COMPONENTS & UTILITIES (Using the new @utility directive)
+   ========================================================================== */
+@utility btn-primary {
+  @apply px-6 py-3 bg-sky-600 text-white rounded-xl font-semibold
+         hover:bg-sky-700 transition-colors duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+@utility btn-gold {
+  @apply px-6 py-3 bg-gold-400 text-sky-900 rounded-xl font-semibold
+         hover:bg-gold-500 transition-colors duration-200;
+}
+
+@utility card {
+  @apply bg-white rounded-2xl border border-sky-100 shadow-sm
+         hover:shadow-md transition-shadow duration-200;
+}
+
+@utility input-base {
+  @apply w-full px-4 py-3 rounded-xl border border-sky-200
+         focus:outline-none focus:border-sky-400 bg-sky-50
+         text-sky-800 text-sm transition-colors duration-200;
+}
+
+@utility section-label {
+  @apply text-gold-500 font-semibold tracking-widest uppercase text-sm;
+}
+
+@utility page-container {
+  @apply max-w-6xl mx-auto px-4 sm:px-6;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+/* Note: .font-display, .font-body, .animate-scroll-left, .animate-fade-up, 
+  and .animate-shimmer classes are automatically generated by Tailwind v4 
+  because they were defined inside the @theme engine above!
+*/
