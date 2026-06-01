@@ -1,4 +1,7 @@
 import mongoose from 'mongoose'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export const connectDB = async (): Promise<void> => {
   const uri = process.env.MONGO_URI
@@ -6,7 +9,7 @@ export const connectDB = async (): Promise<void> => {
 
   try {
     await mongoose.connect(uri, {
-      dbName: 'premium-scholars',
+      dbName: 'Premium-Scholars',
     })
     console.log('✅ MongoDB connected successfully')
   } catch (err) {

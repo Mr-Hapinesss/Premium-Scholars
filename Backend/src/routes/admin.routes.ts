@@ -14,8 +14,14 @@ import {
 } from '../controllers/admin.controller.js'
 import { authenticate } from '../middleware/auth.middleware.js'
 import { requireAdmin } from '../middleware/role.middleware.js'
+import { listAdminInvites, revokeAdminInvite, generateAdminInvite } from '../controllers/adminAuth.controller.js'
+
 
 const router = Router()
+
+router.post('/admin-invites',        generateAdminInvite)
+router.get('/admin-invites',         listAdminInvites)
+router.delete('/admin-invites/:id',  revokeAdminInvite)
 
 // All admin routes require authentication + admin role
 router.use(authenticate, requireAdmin)

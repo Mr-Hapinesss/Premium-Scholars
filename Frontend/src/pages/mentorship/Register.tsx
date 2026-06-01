@@ -45,6 +45,7 @@ export default function Register() {
       navigate(role === 'mentor' ? '/mentorship/mentor/home' : '/mentorship/mentee/home')
     } catch (e: any) {
       setError(e.response?.data?.message || 'Registration failed')
+      console.error('Registration error:', e)
     } finally {
       setLoading(false)
     }

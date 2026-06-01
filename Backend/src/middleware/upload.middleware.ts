@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import type { Request } from 'express'
 import type { ParamsDictionary } from 'express-serve-static-core'
 import type { ParsedQs } from 'qs'
+import { getDirname } from '../utils/paths.utils.js';
 
 // Minimal FileFilterCallback type to avoid depending on @types/multer
 type FileFilterCallback = (error: Error | null, acceptFile?: boolean) => void
@@ -30,7 +31,8 @@ const resolveFolder = (req: Request): string => {
 
 const storage = multer.diskStorage({
   destination: (req: Request, _file: MulterFile, cb: (error: Error | null, destination: string) => void) => {    const folder = resolveFolder(req)
-    const dest = path.join(__dirname, '../../uploads', folder)
+
+    const dest = path.join(getDirname(import.meta.url), '../../uploads', folder)
     cb(null, dest)
   },
   filename: (_req: any, file: { originalname: string }, cb: (arg0: null, arg1: string) => void) => {

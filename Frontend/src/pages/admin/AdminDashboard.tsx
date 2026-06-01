@@ -10,8 +10,11 @@ import { beautyService } from '../../services/beauty.service'
 import { requirementsService } from '../../services/requirements.service'
 import { useToast } from '../../components/shared/Toast'
 import { api } from '../../services/api'
+import { adminAuthService } from '../../services/adminAuth.service'
 
-type Tab = 'overview' | 'beauty' | 'requirements' | 'mentors' | 'users' | 'news' | 'codes'
+
+type Tab = 'overview' | 'beauty' | 'requirements' | 'mentors' | 'users' | 'news' | 'codes' | 'invites'
+
 
 const TABS: { key: Tab; label: string; emoji: string }[] = [
   { key: 'overview',      label: 'Overview',         emoji: '📊' },
@@ -21,6 +24,8 @@ const TABS: { key: Tab; label: string; emoji: string }[] = [
   { key: 'mentors',       label: 'Mentors',          emoji: '🎓' },
   { key: 'users',         label: 'Users',            emoji: '👥' },
   { key: 'codes',         label: 'Mentor Codes',     emoji: '🔑' },
+  { key: 'invites',       label: 'Admin Invites',    emoji: '🔗' },
+
 ]
 
 export default function AdminDashboard() {
@@ -87,6 +92,7 @@ export default function AdminDashboard() {
           {tab === 'mentors'      && <MentorsTab />}
           {tab === 'users'        && <UsersTab />}
           {tab === 'codes'        && <CodesTab />}
+          {tab === 'invites'      && <AdminInvitesTab />}
         </main>
       </div>
     </div>
@@ -546,6 +552,210 @@ function CodesTab() {
               )}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Admin Invites ─────────────────────────────────────────────────────────────
+
+function AdminInvitesTab() {
+  const [invites,    setInvites]    = useState<any[]>([])
+  const [loading,    setLoading]    = useState(true)
+  const [email,      setEmail]      = useState('')
+  const [hours,      setHours]      = useState('24')
+  const [generating, setGenerating] = useState(false)
+  const [generated,  setGenerated]  = useState<{ inviteUrl: string; token: string; expiresAt: string } | null>(null)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    adminAuthService.listInvites()
+      .then(setInvites)
+      .catch(() => toast('Failed to load invites', 'error'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleGenerate = async () => {
+    setGenerating(true)
+    setGenerated(null)
+    try {
+      const result = await adminAuthService.generateInvite(
+        email.trim() || undefined,
+        parseInt(hours) || 24
+      )
+      setGenerated(result)
+      setInvites(prev => [result, ...prev])
+      setEmail('')
+      toast('Admin invite generated', 'success')
+    } catch (err: any) {
+      toast(err.response?.data?.message ?? 'Failed to generate invite', 'error')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleRevoke = async (id: string) => {
+    if (!confirm('Revoke this admin invite?')) return
+    try {
+      await adminAuthService.revokeInvite(id)
+      setInvites(prev => prev.filter(i => i._id !== id))
+      toast('Invite revoked', 'success')
+    } catch {
+      toast('Failed to revoke invite', 'error')
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard', 'success'))
+  }
+
+  return (
+    <div>
+      <h2 className="font-display text-3xl text-sky-900 mb-2">Admin Invites</h2>
+      <p className="text-sky-500 text-sm mb-6">
+        Generate secure single-use invite links to onboard new admins. Each link expires after the set duration.
+      </p>
+
+      {/* Generate form */}
+      <div className="bg-white rounded-2xl border border-sky-100 p-6 mb-6 shadow-sm">
+        <h3 className="font-semibold text-sky-700 mb-4 text-sm">Generate New Invite</h3>
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sky-600 text-xs font-semibold mb-1.5 uppercase tracking-wide">
+              Lock to Email (optional)
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Leave blank for open invite"
+              className="w-full px-3 py-2.5 rounded-xl border border-sky-200 text-sm focus:outline-none focus:border-sky-400 bg-sky-50 text-sky-800 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sky-600 text-xs font-semibold mb-1.5 uppercase tracking-wide">
+              Expires In
+            </label>
+            <select
+              value={hours}
+              onChange={e => setHours(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-sky-200 text-sm bg-white focus:outline-none focus:border-sky-400 text-sky-700 transition-all"
+            >
+              <option value="6">6 hours</option>
+              <option value="12">12 hours</option>
+              <option value="24">24 hours</option>
+              <option value="48">48 hours</option>
+              <option value="72">72 hours</option>
+            </select>
+          </div>
+        </div>
+        <button
+          onClick={handleGenerate}
+          disabled={generating}
+          className="px-6 py-2.5 bg-sky-600 text-white rounded-xl text-sm font-semibold hover:bg-sky-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+        >
+          {generating && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+          {generating ? 'Generating...' : '🔗 Generate Invite Link'}
+        </button>
+
+        {/* Generated link display */}
+        {generated && (
+          <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+            <p className="text-emerald-700 text-xs font-semibold mb-2">✓ Invite generated — share this link:</p>
+            <div className="flex gap-2">
+              <code className="flex-1 text-xs text-emerald-800 bg-white border border-emerald-200 px-3 py-2 rounded-lg overflow-x-auto whitespace-nowrap">
+                {generated.inviteUrl}
+              </code>
+              <button
+                onClick={() => copyToClipboard(generated.inviteUrl)}
+                className="px-3 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 transition-colors flex-shrink-0"
+              >
+                Copy
+              </button>
+            </div>
+            <p className="text-emerald-500 text-xs mt-2">
+              Expires: {new Date(generated.expiresAt).toLocaleString('en-KE')}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Invites list */}
+      {loading ? (
+        <LoadingSpinner />
+      ) : invites.length === 0 ? (
+        <div className="text-center py-12 text-sky-300 text-sm">No invites generated yet.</div>
+      ) : (
+        <div className="space-y-3">
+          {invites.map((inv: any) => {
+            const expired = new Date() > new Date(inv.expiresAt)
+            return (
+              <div key={inv._id} className="bg-white rounded-2xl border border-sky-100 px-5 py-4 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className={[
+                    'w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0',
+                    inv.isUsed   ? 'bg-emerald-100' :
+                    expired      ? 'bg-red-100'     : 'bg-sky-100',
+                  ].join(' ')}>
+                    {inv.isUsed ? '✅' : expired ? '⏰' : '🔗'}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <code className="text-xs font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded">
+                        {inv.token?.slice(0, 16)}...
+                      </code>
+                      <span className={[
+                        'text-xs px-2.5 py-0.5 rounded-full font-semibold',
+                        inv.isUsed   ? 'bg-emerald-100 text-emerald-600' :
+                        expired      ? 'bg-red-100 text-red-500'         : 'bg-sky-100 text-sky-600',
+                      ].join(' ')}>
+                        {inv.isUsed ? 'Used' : expired ? 'Expired' : 'Available'}
+                      </span>
+                    </div>
+
+                    {inv.email && (
+                      <p className="text-sky-500 text-xs">Locked to: {inv.email}</p>
+                    )}
+                    {inv.isUsed && inv.usedBy && (
+                      <p className="text-emerald-600 text-xs">
+                        Used by: {inv.usedBy.name} ({inv.usedBy.email})
+                      </p>
+                    )}
+                    <p className="text-sky-400 text-xs mt-0.5">
+                      Created by {inv.createdBy?.name} •{' '}
+                      Expires {new Date(inv.expiresAt).toLocaleString('en-KE', {
+                        day: 'numeric', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2 flex-shrink-0">
+                    {!inv.isUsed && !expired && (
+                      <button
+                        onClick={() => copyToClipboard(
+                          `${import.meta.env.VITE_API_URL?.replace('/api', '') ?? 'http://localhost:5173'}/admin/register?token=${inv.token}`
+                        )}
+                        className="text-xs text-sky-500 hover:text-sky-700 font-medium transition-colors"
+                      >
+                        Copy link
+                      </button>
+                    )}
+                    {!inv.isUsed && (
+                      <button
+                        onClick={() => handleRevoke(inv._id)}
+                        className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
+                      >
+                        Revoke
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

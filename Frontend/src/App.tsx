@@ -19,6 +19,8 @@ import RequirementsHome from './pages/requirements/RequirementsHome'
 import Checkout from './pages/requirements/Checkout'
 import NewsPage from './pages/news/NewsPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminRegister from './pages/admin/AdminRegister'
+
 
 // Scrolls to top on every route change
 function ScrollToTop() {
@@ -81,10 +83,11 @@ export default function App() {
 
             {/* ── ADMIN ── */}
             <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin']}>                
                 <AdminDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/admin/register" element={<AdminRegister />} />
 
             {/* ── 404 ── */}
             <Route path="*" element={<NotFound />} />

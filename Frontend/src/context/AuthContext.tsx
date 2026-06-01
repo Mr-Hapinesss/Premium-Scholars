@@ -88,18 +88,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
   }, [])
 
-  const login = useCallback(async (email: string, password: string): Promise<void> => {
-    const res = await api.post('/auth/login', { email, password })
-    // Shape: { success, message, data: { user, token } }
-    const { user: authUser, token: authToken } = res.data.data as { user: AuthUser; token: string }
-    persist(authUser, authToken)
-  }, [persist])
+const login = useCallback(async (email: string, password: string): Promise<void> => {
+  try {
+    const res = await api.post(`${import.meta.env.VITE_API_URL}/auth/login`, { email, password });
+    
+    // Guard clause: Ensure data nested structure exists safely
+    if (res.data?.data) {
+      const { user: authUser, token: authToken } = res.data.data as { user: AuthUser; token: string };
+      persist(authUser, authToken);
+    } else {
+      throw new Error("Unexpected response structure from server");
+    }
+  } catch (error: any) {
+    console.error("Login Context Error:", error.response?.data || error.message);
+    throw error; // Re-throw so your UI components (Login.tsx) can catch it and display an alert
+  }
+}, [persist]);
 
-  const register = useCallback(async (data: RegisterPayload): Promise<void> => {
-    const res = await api.post('/auth/register', data)
-    const { user: authUser, token: authToken } = res.data.data as { user: AuthUser; token: string }
-    persist(authUser, authToken)
-  }, [persist])
+const register = useCallback(async (data: RegisterPayload): Promise<void> => {
+  try {
+    const res = await api.post(`${import.meta.env.VITE_API_URL}/auth/register`, data);
+    
+    if (res.data?.data) {
+      const { user: authUser, token: authToken } = res.data.data as { user: AuthUser; token: string };
+      persist(authUser, authToken);
+    } else {
+      throw new Error("Unexpected response structure from server");
+    }
+  } catch (error: any) {
+    //  This log will show you the EXACT error message your backend's 500 error sent!
+    console.error("Registration Context Error:", error.response?.data || error.message);
+    throw error; 
+  }
+}, [persist]);
 
   const logout = useCallback((): void => {
     setUser(null)

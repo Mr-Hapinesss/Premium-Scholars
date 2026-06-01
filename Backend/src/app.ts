@@ -16,6 +16,8 @@ import mentorshipRoutes  from './routes/mentorship.routes.js'
 import requirementsRoutes from './routes/requirements.routes.js'
 import newsRoutes        from './routes/news.routes.js'
 import adminRoutes       from './routes/admin.routes.js'
+import adminAuthRoutes from './routes/adminAuth.routes.js'
+
 
 const app = express()
 
@@ -51,13 +53,24 @@ app.use('/api/mentorship',   mentorshipRoutes)
 app.use('/api/requirements', requirementsRoutes)
 app.use('/api/news',         newsRoutes)
 app.use('/api/admin',        adminRoutes)
-app.use(notFoundHandler)
-app.use(globalErrorHandler)
+app.use('/api/admin-auth', adminAuthRoutes)
+
+
 
 // ── HEALTH CHECK ──
-app.get('/api/health', (_req: any, res: { json: (arg0: { status: string; timestamp: string }) => any }) => res.json({ status: 'ok', timestamp: new Date().toISOString() }))
+app.get('/api/health', (_req: any, res: { json: (arg0: { status: string; timestamp: string }) => any }) => 
+  res.json({ status: 'ok', timestamp: new Date().toISOString() }))
+
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: "Premium Scholars API Backend is running perfectly!",
+    status: "healthy",
+    timestamp: new Date()
+  });
+});
 
 // ── GLOBAL ERROR HANDLER ──
-// The global error handler is already registered above with `app.use(globalErrorHandler)`
+app.use(notFoundHandler)
+app.use(globalErrorHandler)
 
 export default app

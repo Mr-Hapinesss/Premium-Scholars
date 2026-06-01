@@ -66,3 +66,82 @@ Adding a new section — Create a new folder in pages/ and components/, add a se
 Adding a new admin capability — Add the endpoint to admin.routes.ts, implement the handler in admin.controller.ts, add the service call to services/admin.service.ts, and add a tab in the AdminDashboard sidebar with the corresponding render logic.
 Payment integration — The Order model has a status lifecycle (pending → confirmed → shipped → delivered). A payment provider (e.g. Mpesa via Daraja API, Stripe, or Flutterwave) would sit between the OrderForm component submitting the order and the backend confirming it. The recommended pattern is: create order with status pending → initiate payment → payment provider calls a webhook → backend updates order status to confirmed.
 Email notifications — Nodemailer or a transactional email provider (Resend, Postmark) can be integrated in the backend. Natural trigger points are: new user registration, order confirmation, mentee assignment notification, and news post publication.
+
+How the Admin Invite System Works
+
+The Full Flow (When Admins Already Exist)
+The system is a closed loop. Here is exactly what happens step by step.
+An existing admin logs into the dashboard and navigates to the Admin Invites tab. They optionally type the email address of the person they want to invite and choose how long the link should stay valid — 6, 12, 24, 48, or 72 hours. They click "Generate Invite Link".
+When that button is clicked, the frontend calls POST /api/admin-auth/invite. The backend runs generateAdminInvite in adminAuth.controller.ts. It uses Node's built-in crypto.randomBytes(32).toString('hex') to generate a 64-character hexadecimal string. That string has 256 bits of entropy, which means there are more possible values than atoms in the observable universe — it is not guessable. The backend creates an AdminInvite document in MongoDB storing the token, the optional locked email, the expiry date, and the ID of the admin who created it. It then constructs the full invite URL: https://yourfrontend.com/admin/register?token=abc123... and returns it to the admin's browser.
+The admin copies that URL and sends it to the intended person however they choose — WhatsApp, email, in person, it does not matter. The URL itself is the credential.
+The recipient clicks the link. Their browser opens /admin/register?token=abc123.... The AdminRegister.tsx page immediately reads the token from the URL query string and calls GET /api/admin-auth/validate-invite?token=abc123... before rendering anything. The backend looks up the token in the AdminInvite collection. If it does not exist, it returns 404. If it exists but isUsed is true, it returns 409. If the current time is past expiresAt, it returns 410. If everything is fine, it returns the lockedEmail and expiresAt so the frontend knows what to display.
+Based on the response, the frontend shows one of four things. A full error screen if the token is invalid, expired, or already used. Or the registration form if the token is valid.
+The recipient fills in their name, email, password, and optionally their university. If the invite was locked to a specific email, that field is pre-filled, visually marked as "Locked", and the input is disabled — they cannot change it. They submit the form.
+The frontend calls POST /api/admin-auth/register with the token and all the form fields. The backend validates the token again (double check — never trust that the frontend validated it), confirms the email matches the lock if one exists, checks that no account with that email already exists, hashes the password with bcrypt at cost factor 12, creates the User document with role: 'admin', marks the AdminInvite document as isUsed: true and sets usedBy to the new user's ID, signs a JWT, and returns the user and token.
+The frontend receives the response, shows a success screen for two seconds, then calls login() with the credentials to populate the AuthContext, and redirects to /admin.
+The link is now dead. If anyone else tries to visit it, they see the "Already Used" error screen. The MongoDB TTL index also deletes expired unused invite documents automatically so they do not pile up.
+
+What Happens If There Is No Admin At All
+This is the bootstrapping problem and it is a real issue with invite-only systems. If every admin account requires an existing admin to create the invite, who creates the very first admin?
+The answer is the seed script that was written earlier in this project. It is the designated escape hatch for this exact situation.
+Open backend/src/seed.ts. It already exists and already does this:
+typescriptconst admin = await User.create({
+  name:     'Premium Scholars Admin',
+  email:    'admin@premiumscholars.co.ke',
+  password: hashed,
+  role:     'admin',
+})
+You run it once, from your terminal, on the server or locally while connected to the database:
+bashcd backend
+npm run seed
+That command creates the first admin account with these credentials:
+
+Email: admin@premiumscholars.co.ke
+Password: Admin@1234
+
+You then log in with those credentials, immediately go to the admin panel, go to your profile or settings, and change the password to something strong that only you know. You then use that account to generate invite links for any other admins you need.
+After running the seed script the first time, you should never run it again. It checks if (!existing) before creating anything, so running it twice will not create a duplicate, but there is no reason to run it again after the first admin exists.
+
+What If You Are Already in Production With No Admin
+If the seed script was never run and the database has no admin at all, you have three options in order of preference.
+Option 1 — Run the seed script directly against the production database. Set your MONGO_URI environment variable to point at the production database and run npm run seed from your local machine or from the server. This is the cleanest approach. Change the password immediately after.
+Option 2 — Manually create an admin via the MongoDB shell or Compass. Connect to your MongoDB instance with MongoDB Compass or mongosh. Run a command like this:
+javascriptuse premium-scholars
+
+db.users.insertOne({
+  name:      "Admin",
+  email:     "admin@premiumscholars.co.ke",
+  password:  "$2a$12$...",   // bcrypt hash of your chosen password
+  role:      "admin",
+  isActive:  true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+})
+The problem with this approach is that you need a pre-hashed password. You cannot just type a plain text password into MongoDB and have it work — the login controller uses bcryptjs.compare() which only works against a proper bcrypt hash. To generate the hash, run this one-liner in Node:
+bashnode -e "const b = require('bcryptjs'); b.hash('YourPasswordHere', 12).then(h => console.log(h))"
+Copy the output hash into the MongoDB insert command above.
+Option 3 — Add a temporary bootstrap endpoint. If you cannot access the database directly and cannot run the seed script, add a temporary route to the backend that creates an admin with a hardcoded secret. You would add something like this to app.ts:
+typescript// TEMPORARY — REMOVE IMMEDIATELY AFTER USE
+app.post('/api/bootstrap', async (req, res) => {
+  const { secret } = req.body
+  if (secret !== process.env.BOOTSTRAP_SECRET) {
+    return res.status(403).json({ message: 'Forbidden' })
+  }
+  const existing = await User.findOne({ role: 'admin' })
+  if (existing) {
+    return res.status(409).json({ message: 'Admin already exists' })
+  }
+  const hashed = await require('./utils/password.utils').hashPassword('Admin@1234')
+  const admin = await User.create({
+    name: 'Bootstrap Admin', email: 'admin@premiumscholars.co.ke',
+    password: hashed, role: 'admin', isActive: true,
+  })
+  return res.json({ message: 'Admin created', email: admin.email })
+})
+Set BOOTSTRAP_SECRET=some_very_long_random_string in your .env. Deploy. Call the endpoint once with that secret. Delete the endpoint. Redeploy. This is a last resort and you must remove it immediately — leaving a bootstrap endpoint in production is a critical security vulnerability.
+
+Summary Table
+SituationSolutionFirst deployment, fresh databaseRun npm run seedDevelopment environmentRun npm run seedProduction, no admin, DB accessibleRun seed script pointed at production DBProduction, no admin, DB accessible via CompassInsert user manually with bcrypt hashed passwordProduction, no admin, no DB accessTemporary bootstrap endpoint — delete immediately after useAdmin exists, need another adminUse the Admin Invites tab in the dashboard
+
+Why Not Just Allow Admin Self-Registration
+The reason the system is designed this way and not with a simple "register as admin" option is that admin accounts have destructive capabilities — they can delete any user, see all mentor and mentee data, edit all products, and publish content to every user of the platform. If anyone could register as admin by simply selecting a role or knowing a fixed code, one leaked piece of information would compromise the entire platform. The invite token approach means that even if someone knows the registration URL exists, they cannot use it without a valid cryptographically random token that expires and can only be generated by someone who is already authenticated as admin. The attack surface is as small as it can reasonably be while still being practical to use.
