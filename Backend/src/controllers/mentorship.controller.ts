@@ -1,6 +1,6 @@
-import { Request, Response } from 'express'
-import { User } from '../models/User.model'
-import { sendSuccess, sendError } from '../utils/apiResponse.utils'
+import type { Request, Response } from 'express'
+import { User } from '../models/User.model.js'
+import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
 
 // ─── GET MY MENTEES (mentor sees own mentees only) ─────────────────────────
 export const getMyMentees = async (req: Request, res: Response): Promise<void> => {

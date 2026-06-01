@@ -1,18 +1,21 @@
+// This file sets up the Express application, including middleware, routes, and error handling. It is imported by server.ts to start the server.
+
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import { fileURLToPath } from 'url';
 import fs from 'fs'
-import { authLimiter, apiLimiter } from './middleware/rateLimiter.middleware'
-import { notFoundHandler }   from './middleware/notFound.middleware'
-import { globalErrorHandler } from './middleware/errorHandler.middleware'
+import { authLimiter, apiLimiter } from './middleware/rateLimiter.middleware.js'
+import { notFoundHandler }   from './middleware/notFound.middleware.js'
+import { globalErrorHandler } from './middleware/errorHandler.middleware.js'
 
 
-import authRoutes        from './routes/auth.routes'
-import beautyRoutes      from './routes/beauty.routes'
-import mentorshipRoutes  from './routes/mentorship.routes'
-import requirementsRoutes from './routes/requirements.routes'
-import newsRoutes        from './routes/news.routes'
-import adminRoutes       from './routes/admin.routes'
+import authRoutes        from './routes/auth.routes.js'
+import beautyRoutes      from './routes/beauty.routes.js'
+import mentorshipRoutes  from './routes/mentorship.routes.js'
+import requirementsRoutes from './routes/requirements.routes.js'
+import newsRoutes        from './routes/news.routes.js'
+import adminRoutes       from './routes/admin.routes.js'
 
 const app = express()
 
@@ -31,6 +34,9 @@ app.use(express.urlencoded({ extended: true }))
 
 // ── STATIC FILE SERVING (uploads) ──
 // Ensure upload directories exist on startup
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const uploadDirs = ['uploads/beauty', 'uploads/requirements', 'uploads/news']
 uploadDirs.forEach(dir => {
   const full = path.join(__dirname, '..', dir)
@@ -49,7 +55,7 @@ app.use(notFoundHandler)
 app.use(globalErrorHandler)
 
 // ── HEALTH CHECK ──
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }))
+app.get('/api/health', (_req: any, res: { json: (arg0: { status: string; timestamp: string }) => any }) => res.json({ status: 'ok', timestamp: new Date().toISOString() }))
 
 // ── GLOBAL ERROR HANDLER ──
 // The global error handler is already registered above with `app.use(globalErrorHandler)`

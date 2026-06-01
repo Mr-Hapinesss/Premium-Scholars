@@ -1,7 +1,9 @@
-import { Request, Response } from 'express'
-import { BeautyProduct } from '../models/BeautyProduct.model'
-import { sendSuccess, sendError } from '../utils/apiResponse.utils'
-import { buildFileUrl } from '../middleware/upload.middleware'
+import type { Request, Response } from 'express'
+import type { Multer } from 'multer'
+import { BeautyProduct } from '../models/BeautyProduct.model.js'
+import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
+import { buildFileUrl } from '../middleware/upload.middleware.js'
+import multer from 'multer';
 import fs from 'fs'
 import path from 'path'
 
@@ -45,7 +47,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     const { name, description, price, category, stock } = req.body
     if (!name || !price) { sendError(res, 'Name and price are required'); return }
 
-    const files = req.files as Express.Multer.File[]
+    const files = req.files as globalThis.Express.Multer.File[];
     const images = files ? files.map(buildFileUrl) : []
 
     const product = await BeautyProduct.create({
@@ -95,7 +97,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Append newly uploaded images
-    const newFiles = req.files as Express.Multer.File[]
+    const newFiles = req.files as globalThis.Express.Multer.File[];
     if (newFiles && newFiles.length > 0) {
       product.images.push(...newFiles.map(buildFileUrl))
     }

@@ -1,32 +1,11 @@
-import { Request, Response } from 'express'
-import { User } from '../models/User.model'
-import { MentorCode } from '../models/MentorCode.model'
-import { Order } from '../models/Order.model'
-import { generateMentorCode } from '../utils/mentorCode.utils'
-import { sendSuccess, sendError } from '../utils/apiResponse.utils'
-import { assignMentee } from './mentorship.controller'
+import type { Request, Response } from 'express'
+import { User } from '../models/User.model.js'
+import { MentorCode } from '../models/MentorCode.model.js'
+import { Order } from '../models/Order.model.js'
+import { generateMentorCode } from '../utils/mentorCode.utils.js'
+import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
+import { assignMentee } from './mentorship.controller.js'
 
-// ─── GET ALL USERS (admin sees everyone) ──────────────────────────────────
-export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { role, page = '1', limit = '50' } = req.query as Record<string, string>
-    const filter: any = {}
-    if (role) filter.role = role
-
-    const skip  = (parseInt(page) - 1) * parseInt(limit)
-    const total = await User.countDocuments(filter)
-    const users = await User.find(filter)
-      .select('name email role university createdAt')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean()
-
-    sendSuccess(res, { users, total })
-  } catch (err: any) {
-    sendError(res, err.message, 500)
-  }
-}
 
 // ─── DELETE USER ──────────────────────────────────────────────────────────
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
@@ -82,7 +61,13 @@ export const getAllMentors = async (req: Request, res: Response): Promise<void> 
 // ─── GET MENTEE BY ID (admin search — no "get all mentees" endpoint) ───────
 export const getMenteeById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const mentee = await User.findOne({ _id: req.params.id, role: 'mentee' })
+    const { id } = req.params;
+    if (!id || typeof id !== 'string') {
+      sendError(res, 'Invalid mentee ID', 400);
+      return;
+    }
+
+    const mentee = await User.findOne({ _id: id, role: 'mentee' })
       .select('name email university mentorId createdAt')
       .lean()
 

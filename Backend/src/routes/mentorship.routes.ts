@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { getMyMentees, getMentorStats, getMyMentor } from '../controllers/mentorship.controller'
-import { authenticate } from '../middleware/auth.middleware'
-import { requireMentor, requireAny } from '../middleware/role.middleware'
+import { getMyMentees, getMentorStats, getMyMentor } from '../controllers/mentorship.controller.js'
+import { authenticate } from '../middleware/auth.middleware.js'
+import { requireMentor, requireAny } from '../middleware/role.middleware.js'
 
 const router = Router()
 

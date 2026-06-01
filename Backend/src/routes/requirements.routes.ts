@@ -2,10 +2,10 @@ import { Router } from 'express'
 import {
   getAll, getById, create, update, remove,
   placeOrder, getMyOrders,
-} from '../controllers/requirements.controller'
-import { authenticate } from '../middleware/auth.middleware'
-import { requireAdmin, requireAny } from '../middleware/role.middleware'
-import { uploadSingle } from '../middleware/upload.middleware'
+} from '../controllers/requirements.controller.js'
+import { authenticate } from '../middleware/auth.middleware.js'
+import { requireAdmin, requireAny } from '../middleware/role.middleware.js'
+import { uploadSingle } from '../middleware/upload.middleware.js'
 
 const router = Router()
 

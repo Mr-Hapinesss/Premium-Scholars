@@ -1,10 +1,10 @@
-import { Request, Response } from 'express'
-import { NewsPost } from '../models/NewsPost.model'
-import { sendSuccess, sendError } from '../utils/apiResponse.utils'
-import { buildFileUrl } from '../middleware/upload.middleware'
+import type { Request, Response } from 'express'
+import { NewsPost } from '../models/NewsPost.model.js'
+import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
+import { buildFileUrl } from '../middleware/upload.middleware.js'
 import fs from 'fs'
 import path from 'path'
-import { sanitizeHtml, sanitizeField } from '../utils/sanitize.utils'
+import { sanitizeHtml, sanitizeField } from '../utils/sanitize.utils.js'
 
 
 // ─── GET ALL (public, newest first) ───────────────────────────────────────
@@ -47,10 +47,10 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     const post = await NewsPost.create({
       title:     sanitizeField(title),
       body:      sanitizeHtml(body),
-      imageUrl,
-      author:    req.user!.name,
-      createdBy: req.user!._id,
-    })
+     author:    req.user!.name,
+     createdBy: req.user!._id,
+     ...(imageUrl ? { imageUrl } : {}) // 👈 This fixes the error! Only adds the key if a string exists
+    });
 
     sendSuccess(res, post, 201, 'Post published')
   } catch (err: any) {

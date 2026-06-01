@@ -1,12 +1,19 @@
+/* 
+this file does this: 
+1. Connects to the database, 
+2. Checks if an admin user exists, 
+3. If not, creates the admin user and seeds mentor codes, 
+4. Disconnects from the database and exits.
+*/
 import dotenv from 'dotenv'
 dotenv.config()
 
 import mongoose from 'mongoose'
-import { connectDB } from './config/db'
-import { User } from './models/User.model'
-import { MentorCode } from './models/MentorCode.model'
-import { hashPassword } from './utils/password.utils'
-import { generateMentorCode } from './utils/mentorCode.utils'
+import { connectDB } from './config/db.js'
+import { User } from './models/User.model.js'
+import { MentorCode } from './models/MentorCode.model.js'
+import { hashPassword } from './utils/password.utils.js'
+import { generateMentorCode } from './utils/mentorCode.utils.js'
 
 const seed = async () => {
   await connectDB()

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express'
+import type { Request, Response, NextFunction } from 'express'
 import { Error as MongooseError } from 'mongoose'
 
 export const globalErrorHandler = (

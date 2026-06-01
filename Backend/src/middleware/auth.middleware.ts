@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express'
-import { verifyToken } from '../utils/jwt.utils'
-import { User, IUser } from '../models/User.model'
+import type { Request, Response, NextFunction } from 'express'
+import { verifyToken } from '../utils/jwt.utils.js'
+import { User } from '../models/User.model.js'
+import type { IUser } from '../models/User.model.js'
 
 declare global {
   namespace Express {
@@ -19,6 +20,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     }
 
     const token   = authHeader.split(' ')[1]
+    if (!token) {
+      res.status(401).json({ success: false, message: 'Invalid token format' })
+      return
+    }
     const decoded = verifyToken(token)
 
     // No +password select here — controllers that need password call it explicitly

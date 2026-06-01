@@ -1,9 +1,9 @@
-import { Request, Response } from 'express'
-import { User } from '../models/User.model'
-import { MentorCode } from '../models/MentorCode.model'
-import { hashPassword, comparePassword } from '../utils/password.utils'
-import { signToken } from '../utils/jwt.utils'
-import { sendSuccess, sendError } from '../utils/apiResponse.utils'
+import type { Request, Response } from 'express'
+import { User } from '../models/User.model.js'
+import { MentorCode } from '../models/MentorCode.model.js'
+import { hashPassword, comparePassword } from '../utils/password.utils.js'
+import { signToken } from '../utils/jwt.utils.js'
+import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
 
 // ─── REGISTER ──────────────────────────────────────────────────────────────
 export const register = async (req: Request, res: Response): Promise<void> => {

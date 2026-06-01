@@ -101,7 +101,7 @@ function NotFound() {
       <div className="font-display text-9xl font-bold text-sky-100 mb-4">404</div>
       <h1 className="font-display text-3xl text-sky-800 mb-3">Page Not Found</h1>
       <p className="text-sky-500 mb-8 max-w-xs">The page you're looking for doesn't exist or was moved.</p>
-      <a href="/" className="px-6 py-3 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition-colors">
+      <a href="/" className="inline-block p-4 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition-colors">
         Go Home
       </a>
     </div>

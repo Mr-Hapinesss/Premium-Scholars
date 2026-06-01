@@ -17,7 +17,6 @@ module.exports = {
           600: '#d97706',
           700: '#b45309',
         },
-        rose:  '#fb7185',
         blush: '#fdf2f8',
         ivory: '#fefce8',
       },
@@ -26,10 +25,8 @@ module.exports = {
         body:    ['"DM Sans"', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
-        'hero-gradient':
-          'linear-gradient(135deg, rgba(186,230,253,0.85) 0%, rgba(254,243,199,0.75) 100%)',
-        'gold-shimmer':
-          'linear-gradient(90deg, #fbbf24 0%, #fde68a 50%, #fbbf24 100%)',
+        'hero-gradient': 'linear-gradient(135deg, rgba(186,230,253,0.85) 0%, rgba(254,243,199,0.75) 100%)',
+        'gold-shimmer':  'linear-gradient(90deg, #fbbf24 0%, #fde68a 50%, #fbbf24 100%)',
       },
       animation: {
         'scroll-left': 'scrollLeft 30s linear infinite',
@@ -37,18 +34,14 @@ module.exports = {
         'shimmer':     'shimmer 2.5s ease-in-out infinite',
       },
       keyframes: {
-        scrollLeft: {
-          '0%':   { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-50%)' },
-        },
+        scrollLeft: { '100%': { transform: 'translateX(-50%)' } },
         fadeUp: {
           from: { opacity: '0', transform: 'translateY(20px)' },
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
         shimmer: {
-          '0%':   { backgroundPosition: '0% 50%' },
-          '50%':  { backgroundPosition: '100% 50%' },
-          '100%': { backgroundPosition: '0% 50%' },
+          '0%,100%': { backgroundPosition: '0% 50%' },
+          '50%':     { backgroundPosition: '100% 50%' },
         },
       },
     },

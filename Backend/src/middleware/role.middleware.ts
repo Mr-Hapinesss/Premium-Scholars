@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express'
-import { UserRole } from '../models/User.model'
+import type { Request, Response, NextFunction } from 'express'
+import type { UserRole } from '../models/User.model.js'
 
 /**
  * Factory that returns a middleware allowing only the specified roles.

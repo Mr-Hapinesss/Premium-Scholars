@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { getAll, getById, create, update, remove } from '../controllers/news.controller'
-import { authenticate } from '../middleware/auth.middleware'
-import { requireAdmin } from '../middleware/role.middleware'
-import { uploadSingle } from '../middleware/upload.middleware'
+import { getAll, getById, create, update, remove } from '../controllers/news.controller.js'
+import { authenticate } from '../middleware/auth.middleware.js'
+import { requireAdmin } from '../middleware/role.middleware.js'
+import { uploadSingle } from '../middleware/upload.middleware.js'
 
 const router = Router()
 

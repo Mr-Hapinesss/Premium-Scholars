@@ -11,9 +11,9 @@ import {
   getDashboardSummary,
   getAllOrders,
   updateOrderStatus,
-} from '../controllers/admin.controller'
-import { authenticate } from '../middleware/auth.middleware'
-import { requireAdmin } from '../middleware/role.middleware'
+} from '../controllers/admin.controller.js'
+import { authenticate } from '../middleware/auth.middleware.js'
+import { requireAdmin } from '../middleware/role.middleware.js'
 
 const router = Router()
 

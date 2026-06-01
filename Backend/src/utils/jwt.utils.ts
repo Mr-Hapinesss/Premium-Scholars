@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
-import { env } from '../config/env'
+import { env } from '../config/env.js'
 import { Types } from 'mongoose'
-import { UserRole } from '../models/User.model'
+import type { UserRole } from '../models/User.model.js'
 
 export interface JwtPayload {
   id: string

@@ -1,0 +1,17 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@utility",
+      "description": "Define a custom utility class in Tailwind CSS v4."
+    },
+    {
+      "name": "@theme",
+      "description": "Configure custom design tokens in Tailwind CSS v4."
+    },
+    {
+      "name": "@config",
+      "description": "Load a legacy Tailwind configuration file."
+    }
+  ]
+}

@@ -1,8 +1,21 @@
-import multer, { FileFilterCallback } from 'multer'
+// Use require to avoid missing @types/multer in the project
+import multer from 'multer';
 import path from 'path'
 import crypto from 'crypto'
-import { Request } from 'express'
+import type { Request } from 'express'
+import type { ParamsDictionary } from 'express-serve-static-core'
+import type { ParsedQs } from 'qs'
 
+// Minimal FileFilterCallback type to avoid depending on @types/multer
+type FileFilterCallback = (error: Error | null, acceptFile?: boolean) => void
+// Type for multer file object
+interface MulterFile {
+  fieldname: string
+  originalname: string
+  mimetype: string
+  path: string
+  [key: string]: any
+}
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_FILE_SIZE = 5 * 1024 * 1024  // 5 MB
 
@@ -16,12 +29,11 @@ const resolveFolder = (req: Request): string => {
 }
 
 const storage = multer.diskStorage({
-  destination: (req, _file, cb) => {
-    const folder = resolveFolder(req)
+  destination: (req: Request, _file: MulterFile, cb: (error: Error | null, destination: string) => void) => {    const folder = resolveFolder(req)
     const dest = path.join(__dirname, '../../uploads', folder)
     cb(null, dest)
   },
-  filename: (_req, file, cb) => {
+  filename: (_req: any, file: { originalname: string }, cb: (arg0: null, arg1: string) => void) => {
     const rand    = crypto.randomBytes(8).toString('hex')
     const ext     = path.extname(file.originalname).toLowerCase()
     const safeName = `${Date.now()}-${rand}${ext}`
@@ -29,7 +41,7 @@ const storage = multer.diskStorage({
   },
 })
 
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+const fileFilter = (_req: Request, file: MulterFile, cb: FileFilterCallback) => {
   if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
     cb(null, true)
   } else {
@@ -49,7 +61,7 @@ export const uploadMultiple = (fieldName: string, maxCount = 5) =>
  * Builds the public URL path from a multer file object.
  * The uploads folder is served statically at /uploads.
  */
-export const buildFileUrl = (file: Express.Multer.File): string => {
+export const buildFileUrl = (file: MulterFile): string => {
   // file.path is absolute; extract from 'uploads/' onwards
   const idx = file.path.replace(/\\/g, '/').indexOf('uploads/')
   return '/' + file.path.replace(/\\/g, '/').slice(idx)

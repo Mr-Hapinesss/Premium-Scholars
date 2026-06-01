@@ -1,8 +1,8 @@
-import { Request, Response } from 'express'
-import { RequirementItem } from '../models/RequirementItem.model'
-import { Order } from '../models/Order.model'
-import { sendSuccess, sendError } from '../utils/apiResponse.utils'
-import { buildFileUrl } from '../middleware/upload.middleware'
+import type { Request, Response } from 'express'
+import { RequirementItem } from '../models/RequirementItem.model.js'
+import { Order } from '../models/Order.model.js'
+import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
+import { buildFileUrl } from '../middleware/upload.middleware.js'
 import fs from 'fs'
 import path from 'path'
 
@@ -53,11 +53,11 @@ export const create = async (req: Request, res: Response): Promise<void> => {
       description: description?.trim() || '',
       price: parseFloat(price),
       category: category?.trim() || 'General',
-      image,
       stock: parseInt(stock) || 0,
       inStock: parseInt(stock) > 0,
       createdBy: req.user!._id,
-    })
+     ...(image && { image }),
+    });
 
     sendSuccess(res, item, 201, 'Item created')
   } catch (err: any) {
@@ -140,22 +140,28 @@ export const placeOrder = async (req: Request, res: Response): Promise<void> => 
       total += db.price * qty
       return { itemId: db._id, name: db.name, price: db.price, qty, image: db.image }
     })
+    const sanitizedItems = orderItems.map(item => {
+     const { image, ...rest } = item;
+     return {
+        ...rest,
+       ...(image ? { image } : {}) // Only attaches the key if a string exists
+      };
+    });
 
     const order = await Order.create({
-      userId: req.user!._id,
-      items: orderItems,
-      total,
-      status: 'pending',
-      section,
-      deliveryAddress,
-      notes,
-    })
-
-    sendSuccess(res, order, 201, 'Order placed successfully')
-  } catch (err: any) {
-    sendError(res, err.message, 500)
-  }
-}
+     userId: req.user!._id,
+     items: sanitizedItems, // 👈 Perfect, error-free array
+     total,
+     status: 'pending',
+     section,
+     deliveryAddress,
+     notes,
+    });
+      sendSuccess(res, order, 201, 'Order placed successfully')
+     } catch (err: any) {
+        sendError(res, err.message, 500)
+     }
+    }
 
 // ─── GET MY ORDERS ─────────────────────────────────────────────────────────
 export const getMyOrders = async (req: Request, res: Response): Promise<void> => {
