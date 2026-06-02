@@ -55,13 +55,17 @@ export default function BeautyProduct() {
         <div className="grid md:grid-cols-2 gap-12">
           {/* Images */}
           <div>
-            <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-sky-100 mb-4 shadow-sm">
-              {product.images[activeImg] ? (
-                <img src={product.images[activeImg]} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-7xl">💄</div>
-              )}
-            </div>
+            <div className="aspect-square w-full bg-white rounded-3xl overflow-hidden border border-sky-100 mb-4 shadow-sm">
+  {product.images[activeImg] ? (
+    <img
+      src={product.images[activeImg]}
+      alt={product.name}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-7xl">💄</div>
+  )}
+</div>
             {product.images.length > 1 && (
               <div className="flex gap-3">
                 {product.images.map((img, i) => (

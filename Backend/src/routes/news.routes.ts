@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { getAll, getById, create, update, remove } from '../controllers/news.controller.js'
 import { authenticate } from '../middleware/auth.middleware.js'
 import { requireAdmin } from '../middleware/role.middleware.js'
-import { uploadSingle } from '../middleware/upload.middleware.js'
+import { uploadSingle, processImages } from '../middleware/upload.middleware.js'
 
 const router = Router()
 
@@ -16,6 +16,7 @@ router.post(
   authenticate,
   requireAdmin,
   uploadSingle('image'),
+  processImages,
   create
 )
 
@@ -24,6 +25,7 @@ router.put(
   authenticate,
   requireAdmin,
   uploadSingle('image'),
+  processImages,
   update
 )
 

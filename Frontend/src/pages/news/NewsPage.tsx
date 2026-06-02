@@ -127,15 +127,18 @@ function NewsCard({ post, isLatest }: { post: NewsPost; isLatest: boolean }) {
       'bg-white rounded-3xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200',
       isLatest ? 'border-gold-300 ring-1 ring-gold-100' : 'border-sky-100',
     ].join(' ')}>
-      {imageUrl && (
-        <div className="aspect-video overflow-hidden bg-sky-100">
-          <img
-            src={imageUrl}
-            alt={post.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-          />
-        </div>
-      )}
+{imageUrl && (
+  <div
+    className="w-full overflow-hidden bg-sky-100"
+    style={{ aspectRatio: '1.91 / 1' }}
+  >
+    <img
+      src={imageUrl}
+      alt={post.title}
+      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+    />
+  </div>
+)}
 
       <div className="p-6">
         {isLatest && (

@@ -8,6 +8,7 @@ import { mentorshipService } from '../../services/mentorship.service'
 import { requirementsService } from '../../services/requirements.service'
 import { AuthUser } from '../../context/AuthContext'
 import { Order } from '../../types/product.types'
+import ProfileEditor from '../../components/shared/ProfileEditor'
 
 interface ChecklistItem {
   id: string
@@ -38,6 +39,7 @@ export default function MenteeHome() {
   })
   const [loadingMentor, setLoadingMentor] = useState(true)
   const [loadingOrders, setLoadingOrders] = useState(true)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   useEffect(() => {
     mentorshipService
@@ -84,6 +86,12 @@ export default function MenteeHome() {
 
         {/* ── Welcome banner ── */}
         <div className="relative bg-gradient-to-br from-sky-600 via-sky-700 to-sky-800 rounded-3xl p-7 mb-8 overflow-hidden shadow-lg">
+          <button
+              onClick={() => setProfileOpen(true)}
+              className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/15 text-white rounded-xl text-sm font-semibold hover:bg-white/25 transition-colors border border-white/20 w-fit"
+              >
+              ✏ Edit Profile
+            </button>
           {/* Background decorations */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-1/3 w-40 h-40 bg-gold-400/10 rounded-full translate-y-1/2" />
@@ -356,6 +364,7 @@ export default function MenteeHome() {
             </div>
           </div>
         </div>
+        <ProfileEditor open={profileOpen} onClose={() => setProfileOpen(false)} />
       </div>
 
       <Footer />

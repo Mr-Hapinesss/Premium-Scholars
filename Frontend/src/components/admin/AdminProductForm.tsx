@@ -31,6 +31,19 @@ export default function AdminProductForm({ section, onAdded, existing, onUpdated
   const categories = section === 'beauty' ? BEAUTY_CATEGORIES : REQ_CATEGORIES
   const endpoint   = section === 'beauty' ? '/beauty' : '/requirements'
 
+  const SPEC_HINTS: Record<string, { ratio: string; size: string; tip: string }> = {
+  beauty: {
+    ratio: '1:1 Square',
+    size:  '800 × 800 px',
+    tip:   'Product images are cropped to a square. Centre your product in the frame.',
+  },
+  requirements: {
+    ratio: '3:2 Landscape',
+    size:  '900 × 600 px',
+    tip:   'Item images are cropped to landscape. Keep the subject centred.',
+  },
+}
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? [])
     setFiles(selected)
@@ -105,6 +118,20 @@ export default function AdminProductForm({ section, onAdded, existing, onUpdated
           </button>
         )}
       </div>
+      {SPEC_HINTS[section] && (
+         <div className="md:col-span-2 bg-sky-50 border border-sky-100 rounded-xl px-4 py-3 flex gap-3 items-start">
+           <span className="text-sky-400 text-lg flex-shrink-0">📐</span>
+            <div>
+              <p className="text-sky-700 text-xs font-semibold">
+               Image spec: {SPEC_HINTS[section].ratio} — {SPEC_HINTS[section].size}
+             </p>
+             <p className="text-sky-400 text-xs mt-0.5">{SPEC_HINTS[section].tip}</p>
+             <p className="text-sky-400 text-xs mt-0.5">
+               Images are automatically resized and converted to WebP. Max 5 MB per file.
+             </p>
+           </div>
+         </div>
+        )}
 
       <div className="grid md:grid-cols-2 gap-4">
         {/* Name */}

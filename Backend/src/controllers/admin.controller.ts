@@ -35,7 +35,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 export const getAllMentors = async (req: Request, res: Response): Promise<void> => {
   try {
     const mentors = await User.find({ role: 'mentor' })
-      .select('name email university createdAt')
+      .select('name email university whatsapp createdAt')
       .sort({ createdAt: -1 })
       .lean()
 
@@ -68,7 +68,7 @@ export const getMenteeById = async (req: Request, res: Response): Promise<void> 
     }
 
     const mentee = await User.findOne({ _id: id, role: 'mentee' })
-      .select('name email university mentorId createdAt')
+      .select('name email university mentorId whatsapp createdAt')
       .lean()
 
     if (!mentee) { sendError(res, 'Mentee not found', 404); return }
@@ -218,5 +218,40 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     sendSuccess(res, { users, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) })
   } catch (err: any) {
     sendError(res, err.message, 500)
+  }
+}
+
+
+// ─── GET UNASSIGNED MENTEES ────────────────────────────────────────────────
+// GET /api/admin/unassigned-mentees
+export const getUnassignedMentees = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { page = '1', limit = '20', search = '' } = req.query as Record<string, string>
+
+    const filter: any = {
+      role:     'mentee',
+      mentorId: null,
+    }
+
+    if (search.trim()) {
+      filter.$or = [
+        { name:       { $regex: search.trim(), $options: 'i' } },
+        { email:      { $regex: search.trim(), $options: 'i' } },
+        { university: { $regex: search.trim(), $options: 'i' } },
+      ]
+    }
+
+    const skip  = (parseInt(page) - 1) * parseInt(limit)
+    const total = await User.countDocuments(filter)
+    const mentees = await User.find(filter)
+      .select('name email university createdAt')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean()
+
+    sendSuccess(res, { mentees, total })
+  } catch (err: any) {
+    sendError(res, err.message || 'Failed to fetch unassigned mentees', 500)
   }
 }

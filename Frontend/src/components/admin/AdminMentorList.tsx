@@ -6,6 +6,7 @@ interface Mentor {
   _id: string
   name: string
   email: string
+  whatsapp?: string
   university: string
   menteeCount: number
   createdAt: string
@@ -55,6 +56,7 @@ export default function AdminMentorList({ mentors }: Props) {
           >
             {searching ? '...' : 'Search'}
           </button>
+          
         </div>
         {result && (
           <div className="mt-4 bg-white rounded-xl border border-sky-100 p-4 text-sm space-y-1">
@@ -63,6 +65,20 @@ export default function AdminMentorList({ mentors }: Props) {
             <div className="flex justify-between"><span className="text-sky-500">University</span><span className="text-sky-700">{result.university || '—'}</span></div>
             <div className="flex justify-between"><span className="text-sky-500">Mentor</span><span className="text-sky-700">{result.mentorName || 'Unassigned'}</span></div>
             <div className="flex justify-between"><span className="text-sky-500">Joined</span><span className="text-sky-700">{new Date(result.createdAt).toLocaleDateString()}</span></div>
+            <div className="flex justify-between"><span className="text-sky-500">WhatsApp</span>
+            {result.whatsapp ? (
+              <a 
+                 href={`https://wa.me/${result.whatsapp.replace(/^\+/, '')}`}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold transition-colors"
+              >
+                  💬 {result.whatsapp}
+              </a>
+            ) : (
+                <span className="text-sky-300 text-xs">No WhatsApp set</span>
+            )}
+            </div>
           </div>
         )}
       </div>

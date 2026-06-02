@@ -35,21 +35,27 @@ export default function ItemCard({ item }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-gold-100 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 group">
       {/* Image */}
-      <div className="aspect-video bg-gold-50 overflow-hidden relative">
-        {item.image ? (
-          <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl">📦</div>
-        )}
-        {!item.inStock && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="text-xs font-bold text-sky-400 border border-sky-200 rounded-full px-3 py-1 bg-white">Out of Stock</span>
-          </div>
-        )}
-        <div className="absolute top-3 left-3 bg-gold-100 text-gold-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-          {item.category}
-        </div>
-      </div>
+<div className="aspect-video w-full overflow-hidden bg-gold-50 relative">
+  {item.image ? (
+    <img
+      src={item.image}
+      alt={item.name}
+      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-5xl">📦</div>
+  )}
+  {!item.inStock && (
+    <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+      <span className="text-xs font-bold text-sky-400 border border-sky-200 rounded-full px-3 py-1 bg-white">
+        Out of Stock
+      </span>
+    </div>
+  )}
+  <div className="absolute top-3 left-3 bg-gold-100 text-gold-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+    {item.category}
+  </div>
+</div>
 
       {/* Content */}
       <div className="p-5">

@@ -20,6 +20,7 @@ export const requirementsService = {
     deliveryAddress: string
     notes?: string
     section?: string
+    idempotencyKey?:  string
   }): Promise<Order> =>
     api.post('/requirements/order', data).then(r => r.data.data),
 

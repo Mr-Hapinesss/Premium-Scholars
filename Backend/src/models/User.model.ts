@@ -9,6 +9,7 @@ export interface IUser extends Document {
   password: string
   role: UserRole
   university?: string
+  whatsapp?: string
   mentorId?: Types.ObjectId | null
   isActive: boolean
   createdAt: Date
@@ -42,6 +43,16 @@ const UserSchema = new Schema<IUser>(
       enum: ['admin', 'mentor', 'mentee'],
       default: 'mentee',
     },
+    whatsapp: {
+      type:  String,
+      trim:  true,
+      match: [
+        /^\+?[1-9]\d{6,14}$/,
+        'Please enter a valid phone number (e.g. +254712345678)',
+      ],
+      default: null,
+    },
+    
     university: {
       type: String,
       trim: true,

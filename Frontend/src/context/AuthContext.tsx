@@ -19,6 +19,7 @@ export interface AuthUser {
   role: UserRole
   university?: string
   mentorId?: string | null
+  whatsapp?:  string | null
   isActive: boolean
   createdAt: string
 }

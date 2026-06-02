@@ -20,6 +20,9 @@ module.exports = {
         blush: '#fdf2f8',
         ivory: '#fefce8',
       },
+         aspectRatio: {
+            'news': '1.91 / 1',
+          },
       fontFamily: {
         display: ['"Playfair Display"', 'Georgia', 'serif'],
         body:    ['"DM Sans"', 'system-ui', 'sans-serif'],

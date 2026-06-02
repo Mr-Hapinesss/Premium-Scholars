@@ -116,52 +116,70 @@ export const remove = async (req: Request, res: Response): Promise<void> => {
   }
 }
 
-// ─── PLACE ORDER (any authenticated user) ──────────────────────────────────
+// ─── PLACE ORDER (authenticated users) ───────────────────────────────────
 export const placeOrder = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { items, deliveryAddress, notes, section = 'requirements' } = req.body
+    const { items, deliveryAddress, notes, section = 'requirements', idempotencyKey } = req.body
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       sendError(res, 'Order must contain at least one item')
       return
     }
 
-    // Calculate total from DB prices to prevent price tampering on the client
-    const itemIds    = items.map((i: any) => i.itemId)
-    const dbItems    = await RequirementItem.find({ _id: { $in: itemIds } }).lean()
-    const dbMap      = new Map(dbItems.map(d => [d._id.toString(), d]))
+    // ── Idempotency check ───────────────────────────────────────────────────
+    if (idempotencyKey) {
+      const existing = await Order.findOne({ idempotencyKey, userId: req.user!._id })
+      if (existing) {
+        sendSuccess(res, existing, 200, 'Order already exists (idempotent replay)')
+        return
+      }
+    }
+
+    // ── Price verification (server-authoritative) ───────────────────────────
+    const itemIds = items.map((i: any) => i.itemId)
+    const dbItems = await RequirementItem.find({ _id: { $in: itemIds } }).lean()
+    const dbMap   = new Map(dbItems.map(d => [d._id.toString(), d]))
 
     let total = 0
     const orderItems = items.map((i: any) => {
       const db = dbMap.get(i.itemId)
       if (!db) throw new Error(`Item ${i.itemId} not found`)
-      if (!db.inStock) throw new Error(`${db.name} is out of stock`)
-      const qty = parseInt(i.qty) || 1
+      if (!db.inStock) throw new Error(`${db.name} is currently out of stock`)
+      const qty = Math.max(1, parseInt(i.qty) || 1)
       total += db.price * qty
-      return { itemId: db._id, name: db.name, price: db.price, qty, image: db.image }
+      
+      return { 
+        itemId: db._id, 
+        name: db.name, 
+        price: db.price, 
+        qty, 
+        image: db.image || "" // 💡 Forces a string fallback to satisfy exactOptionalPropertyTypes
+      }
     })
-    const sanitizedItems = orderItems.map(item => {
-     const { image, ...rest } = item;
-     return {
-        ...rest,
-       ...(image ? { image } : {}) // Only attaches the key if a string exists
-      };
-    });
 
+    // ── Create order ────────────────────────────────────────────────────────
     const order = await Order.create({
-     userId: req.user!._id,
-     items: sanitizedItems, // 👈 Perfect, error-free array
-     total,
-     status: 'pending',
-     section,
-     deliveryAddress,
-     notes,
-    });
-      sendSuccess(res, order, 201, 'Order placed successfully')
-     } catch (err: any) {
-        sendError(res, err.message, 500)
-     }
+      userId:         req.user!._id,
+      idempotencyKey: idempotencyKey || undefined,
+      items:          orderItems,
+      total,
+      status:         'pending',
+      section,
+      deliveryAddress,
+      notes,
+    })
+
+    sendSuccess(res, order, 201, 'Order placed successfully')
+  } catch (err: any) {
+    if (err.code === 11000 && err.keyPattern?.idempotencyKey) {
+      const existing = await Order.findOne({ idempotencyKey: req.body.idempotencyKey })
+      sendSuccess(res, existing, 200, 'Order already exists (concurrent replay)')
+      return
     }
+    sendError(res, err.message || 'Failed to place order', 500)
+  }
+}
+
 
 // ─── GET MY ORDERS ─────────────────────────────────────────────────────────
 export const getMyOrders = async (req: Request, res: Response): Promise<void> => {

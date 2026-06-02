@@ -14,6 +14,7 @@ export interface IOrderItem {
 export interface IOrder extends Document {
   _id: Types.ObjectId
   userId: Types.ObjectId
+  idempotencyKey?: string;
   items: IOrderItem[]
   total: number
   status: OrderStatus
@@ -37,34 +38,28 @@ const OrderItemSchema = new Schema<IOrderItem>(
 
 const OrderSchema = new Schema<IOrder>(
   {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+    userId:          { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    idempotencyKey:  {
+      type:   String,
+      unique: true,
+      sparse: true,   // sparse so existing orders without a key don't conflict
+      index:  true,
     },
-    items: {
+    items:           {
       type: [OrderItemSchema],
       required: true,
       validate: {
         validator: (v: IOrderItem[]) => v.length > 0,
-        message: 'Order must have at least one item',
+        message:   'Order must have at least one item',
       },
     },
-    total: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
+    total:           { type: Number, required: true, min: 0 },
+    status:          {
+      type:    String,
+      enum:    ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
       default: 'pending',
     },
-    section: {
-      type: String,
-      enum: ['beauty', 'requirements'],
-      required: true,
-    },
+    section:         { type: String, enum: ['beauty', 'requirements'], required: true },
     deliveryAddress: { type: String },
     notes:           { type: String },
   },

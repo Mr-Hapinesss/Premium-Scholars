@@ -1,11 +1,13 @@
 import { useToast } from '../shared/Toast'
 import { adminService } from '../../services/admin.service'
+import { href } from 'react-router-dom'
 
 interface User {
   _id: string
   name: string
   email: string
   role: 'admin' | 'mentor' | 'mentee'
+  whatsapp?: string
   university?: string
   createdAt: string
 }
@@ -40,6 +42,7 @@ export default function AdminUserList({ users, onDeleted }: Props) {
   }
 
   return (
+    <>
     <div className="space-y-2">
       {users.map(u => (
         <div key={u._id} className="bg-white rounded-2xl border border-sky-100 px-5 py-4 flex items-center gap-3">
@@ -49,9 +52,27 @@ export default function AdminUserList({ users, onDeleted }: Props) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sky-800 text-sm truncate">{u.name}</div>
-            <div className="text-sky-400 text-xs truncate">{u.email}</div>
+            <div className="text-sky-400 text-xs truncate">{u.email}</div>            
             {u.university && <div className="text-sky-300 text-xs truncate">{u.university}</div>}
+            <div>
+              {u.whatsapp && (
+                 <a 
+                   href={`https://wa.me/${u.whatsapp.replace(/^\+/, '')}`}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="inline-flex items-center gap-1.5 mt-1 text-xs text-emerald-600 hover:text-emerald-700 font-semibold transition-colors"
+                 > 
+                   <span className="text-base">💬</span>
+                   {u.whatsapp}
+                   <span className="text-emerald-400">↗</span>
+                 </a>
+              )}
+              {!u.whatsapp && (
+                 <span className="text-sky-300 text-xs mt-1 block">No WhatsApp set</span>
+              )}
+            </div>
           </div>
+          
           <div className="flex items-center gap-3 flex-shrink-0">
             <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium capitalize ${roleBadge[u.role]}`}>
               {u.role}
@@ -69,5 +90,5 @@ export default function AdminUserList({ users, onDeleted }: Props) {
         </div>
       ))}
     </div>
-  )
-}
+    </>
+  )}

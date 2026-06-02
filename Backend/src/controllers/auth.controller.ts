@@ -123,3 +123,34 @@ export const validateMentorCode = async (req: Request, res: Response): Promise<v
     sendError(res, err.message, 500)
   }
 }
+
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { whatsapp, university, name } = req.body
+    const user = await User.findById(req.user!._id)
+    if (!user) { sendError(res, 'User not found', 404); return }
+
+    if (name       !== undefined) user.name       = name.trim()
+    if (university !== undefined) user.university = university.trim()
+
+    if (whatsapp !== undefined) {
+      if (whatsapp === '' || whatsapp === null) {
+        user.whatsapp = null
+      } else {
+        // Normalise — strip spaces and dashes
+        const cleaned = whatsapp.replace(/[\s\-]/g, '')
+        // Basic E.164-ish validation
+        if (!/^\+?[1-9]\d{6,14}$/.test(cleaned)) {
+          sendError(res, 'Invalid phone number. Use international format e.g. +254712345678')
+          return
+        }
+        user.whatsapp = cleaned
+      }
+    }
+
+    await user.save()
+    sendSuccess(res, user.toJSON(), 200, 'Profile updated')
+  } catch (err: any) {
+    sendError(res, err.message || 'Update failed', 500)
+  }
+}

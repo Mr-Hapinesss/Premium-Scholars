@@ -5,3 +5,11 @@ export const authService = {
   register: (data: any) => api.post('/auth/register', data).then(r => r.data),
   getMe: (token: string) => api.get('/auth/me', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.data),
 }
+
+export const profileService = {
+  updateProfile: (data: {
+    name?:        string
+    university?:  string
+    whatsapp?:    string | null
+  }) => api.patch('/auth/profile', data).then(r => r.data.data),
+}

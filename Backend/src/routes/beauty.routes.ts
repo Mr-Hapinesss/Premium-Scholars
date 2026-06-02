@@ -2,7 +2,9 @@ import { Router } from 'express'
 import { getAll, getById, create, update, remove } from '../controllers/beauty.controller.js'
 import { authenticate } from '../middleware/auth.middleware.js'
 import { requireAdmin } from '../middleware/role.middleware.js'
-import { uploadMultiple } from '../middleware/upload.middleware.js'
+import { uploadMultiple, processImages } from '../middleware/upload.middleware.js'
+
+
 
 const router = Router()
 
@@ -16,6 +18,7 @@ router.post(
   authenticate,
   requireAdmin,
   uploadMultiple('images', 5),
+  processImages,
   create
 )
 
@@ -24,6 +27,7 @@ router.put(
   authenticate,
   requireAdmin,
   uploadMultiple('images', 5),
+  processImages,
   update
 )
 
