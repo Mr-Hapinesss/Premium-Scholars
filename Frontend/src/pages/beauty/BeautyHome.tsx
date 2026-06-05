@@ -36,8 +36,8 @@ export default function BeautyHome() {
       .getAll(params)
       .then(data => {
         if (cancelled) return
-        setProducts(data.products)
-        setTotal(data.total)
+        setProducts(data.products ?? [])
+        setTotal(data.total ?? 0)
       })
       .catch(err => {
         if (cancelled) return
