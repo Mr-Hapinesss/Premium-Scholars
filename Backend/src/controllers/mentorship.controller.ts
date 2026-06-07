@@ -36,7 +36,7 @@ export const getMyMentor = async (req: Request, res: Response): Promise<void> =>
       return
     }
     const mentor = await User.findById(mentee.mentorId)
-      .select('name email university createdAt')
+      .select('name email whatsapp university createdAt')
       .lean()
 
     sendSuccess(res, mentor)

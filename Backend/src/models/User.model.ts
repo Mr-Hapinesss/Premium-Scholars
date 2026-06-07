@@ -9,7 +9,7 @@ export interface IUser extends Document {
   password: string
   role: UserRole
   university?: string
-  whatsapp?: string
+  whatsapp?: string | null
   mentorId?: Types.ObjectId | null
   isActive: boolean
   createdAt: Date

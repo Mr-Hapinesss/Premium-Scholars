@@ -38,4 +38,7 @@ router.put(
 
 router.delete('/:id', authenticate, requireAdmin, remove)
 
+// ── Public wildcard — MUST be last ──
+router.get('/:id', getById)
+
 export default router

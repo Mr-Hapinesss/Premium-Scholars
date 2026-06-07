@@ -35,7 +35,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 export const getAllMentors = async (req: Request, res: Response): Promise<void> => {
   try {
     const mentors = await User.find({ role: 'mentor' })
-      .select('name email university whatsapp createdAt')
+      .select('name email whatsapp university  createdAt')
       .sort({ createdAt: -1 })
       .lean()
 
@@ -209,7 +209,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     const skip  = (parseInt(page) - 1) * parseInt(limit)
     const total = await User.countDocuments(filter)
     const users = await User.find(filter)
-      .select('name email role university isActive createdAt')
+      .select('name email role university whatsapp isActive createdAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
@@ -244,7 +244,7 @@ export const getUnassignedMentees = async (req: Request, res: Response): Promise
     const skip  = (parseInt(page) - 1) * parseInt(limit)
     const total = await User.countDocuments(filter)
     const mentees = await User.find(filter)
-      .select('name email university createdAt')
+      .select('name email university whatsapp createdAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))

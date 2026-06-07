@@ -5,6 +5,7 @@ import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
 import { buildFileUrl } from '../middleware/upload.middleware.js'
 import fs from 'fs'
 import path from 'path'
+import { BeautyProduct } from '../models/BeautyProduct.model.js'
 
 // ─── GET ALL (public) ──────────────────────────────────────────────────────
 export const getAll = async (req: Request, res: Response): Promise<void> => {
@@ -119,61 +120,104 @@ export const remove = async (req: Request, res: Response): Promise<void> => {
 // ─── PLACE ORDER (authenticated users) ───────────────────────────────────
 export const placeOrder = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { items, deliveryAddress, notes, section = 'requirements', idempotencyKey } = req.body
+    const {
+      items,
+      deliveryAddress,
+      notes,
+      section = 'requirements',
+      idempotencyKey,
+    } = req.body
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       sendError(res, 'Order must contain at least one item')
       return
     }
 
-    // ── Idempotency check ───────────────────────────────────────────────────
+    if (!['beauty', 'requirements'].includes(section)) {
+      sendError(res, 'Invalid section. Must be beauty or requirements')
+      return
+    }
+
+    // ── Idempotency check ─────────────────────────────────────────────────
     if (idempotencyKey) {
-      const existing = await Order.findOne({ idempotencyKey, userId: req.user!._id })
+      const existing = await Order.findOne({
+        idempotencyKey,
+        userId: req.user!._id,
+      })
       if (existing) {
-        sendSuccess(res, existing, 200, 'Order already exists (idempotent replay)')
+        sendSuccess(res, existing, 200, 'Order already exists')
         return
       }
     }
 
-    // ── Price verification (server-authoritative) ───────────────────────────
+    // ── Fetch items from the correct model based on section ───────────────
     const itemIds = items.map((i: any) => i.itemId)
-    const dbItems = await RequirementItem.find({ _id: { $in: itemIds } }).lean()
-    const dbMap   = new Map(dbItems.map(d => [d._id.toString(), d]))
+
+    let dbItems: any[] = []
+
+    if (section === 'beauty') {
+      dbItems = await BeautyProduct.find({ _id: { $in: itemIds } }).lean()
+    } else {
+      dbItems = await RequirementItem.find({ _id: { $in: itemIds } }).lean()
+    }
+
+    if (dbItems.length === 0) {
+      sendError(res, `No matching ${section} items found. Please refresh and try again.`, 404)
+      return
+    }
+
+    const dbMap = new Map(dbItems.map((d: any) => [d._id.toString(), d]))
 
     let total = 0
-    const orderItems = items.map((i: any) => {
+    const orderItems: any[] = []
+
+    for (const i of items) {
       const db = dbMap.get(i.itemId)
-      if (!db) throw new Error(`Item ${i.itemId} not found`)
-      if (!db.inStock) throw new Error(`${db.name} is currently out of stock`)
+      if (!db) {
+        sendError(res, `Item not found: ${i.itemId}. It may have been removed.`, 404)
+        return
+      }
+      if (!db.inStock) {
+        sendError(res, `"${db.name}" is currently out of stock`, 400)
+        return
+      }
       const qty = Math.max(1, parseInt(i.qty) || 1)
       total += db.price * qty
-      
-      return { 
-        itemId: db._id, 
-        name: db.name, 
-        price: db.price, 
-        qty, 
-        image: db.image || "" // 💡 Forces a string fallback to satisfy exactOptionalPropertyTypes
-      }
-    })
 
-    // ── Create order ────────────────────────────────────────────────────────
+      // Beauty products use images[] array, requirements use image string
+      const image = section === 'beauty'
+        ? db.images?.[0] ?? null
+        : db.image ?? null
+
+      orderItems.push({
+        itemId: db._id,
+        name:   db.name,
+        price:  db.price,
+        qty,
+        image,
+      })
+    }
+
+    // ── Create order ──────────────────────────────────────────────────────
     const order = await Order.create({
-      userId:         req.user!._id,
-      idempotencyKey: idempotencyKey || undefined,
-      items:          orderItems,
+      userId:          req.user!._id,
+      idempotencyKey:  idempotencyKey || undefined,
+      items:           orderItems,
       total,
-      status:         'pending',
+      status:          'pending',
       section,
-      deliveryAddress,
-      notes,
+      deliveryAddress: deliveryAddress?.trim(),
+      notes:           notes?.trim(),
     })
 
     sendSuccess(res, order, 201, 'Order placed successfully')
   } catch (err: any) {
+    // Duplicate idempotency key — concurrent requests
     if (err.code === 11000 && err.keyPattern?.idempotencyKey) {
-      const existing = await Order.findOne({ idempotencyKey: req.body.idempotencyKey })
-      sendSuccess(res, existing, 200, 'Order already exists (concurrent replay)')
+      const existing = await Order.findOne({
+        idempotencyKey: req.body.idempotencyKey,
+      })
+      sendSuccess(res, existing, 200, 'Order already exists')
       return
     }
     sendError(res, err.message || 'Failed to place order', 500)
