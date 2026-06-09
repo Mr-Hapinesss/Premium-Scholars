@@ -20,6 +20,8 @@ import Checkout from './pages/requirements/Checkout'
 import NewsPage from './pages/news/NewsPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminRegister from './pages/admin/AdminRegister'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword  from './pages/ResetPassword'
 
 
 // Scrolls to top on every route change
@@ -48,6 +50,8 @@ export default function App() {
             {/* ── PUBLIC ── */}
             <Route path="/"    element={<LandingPage />} />
             <Route path="/news" element={<NewsPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password"  element={<ResetPassword />} />
 
             {/* ── BEAUTY ── */}
             <Route path="/beauty"             element={<BeautyHome />} />

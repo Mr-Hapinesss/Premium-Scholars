@@ -3,6 +3,7 @@ export interface Mentee {
   name: string
   email: string
   university: string
+  whatsapp: string | null
   mentorId?: string | null
   createdAt: string
 }
@@ -12,6 +13,7 @@ export interface Mentor {
   name: string
   email: string
   university: string
+  whatsapp: string | null
   menteeCount: number
   createdAt: string
 }

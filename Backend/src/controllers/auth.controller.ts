@@ -4,6 +4,9 @@ import { MentorCode } from '../models/MentorCode.model.js'
 import { hashPassword, comparePassword } from '../utils/password.utils.js'
 import { signToken } from '../utils/jwt.utils.js'
 import { sendSuccess, sendError } from '../utils/apiResponse.utils.js'
+import crypto from 'crypto'
+import { PasswordReset } from '../models/passwordReset.model.js'
+import { sendPasswordResetEmail } from '../utils/email.utils.js'
 
 // ─── REGISTER ──────────────────────────────────────────────────────────────
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -124,6 +127,7 @@ export const validateMentorCode = async (req: Request, res: Response): Promise<v
   }
 }
 
+// ─── UPDATE PROFILE ───────────────────────────────────────────────────────
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const { whatsapp, university, name } = req.body
@@ -152,5 +156,154 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     sendSuccess(res, user.toJSON(), 200, 'Profile updated')
   } catch (err: any) {
     sendError(res, err.message || 'Update failed', 500)
+  }
+}
+
+// ─── FORGOT PASSWORD ────────────────────────────────────────────────────────
+// POST /api/auth/forgot-password
+export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body
+
+    if (!email) {
+      sendError(res, 'Email is required')
+      return
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+
+    // Always return success even if email not found — prevents email enumeration
+    // attacks where an attacker probes which emails are registered
+    if (!user) {
+      sendSuccess(
+        res,
+        null,
+        200,
+        'If an account with that email exists, a reset link has been sent.'
+      )
+      return
+    }
+
+    // Delete any existing unused tokens for this user
+    await PasswordReset.deleteMany({ userId: user._id, used: false })
+
+    // Generate a secure token
+    const token     = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000)  // 1 hour
+
+    await PasswordReset.create({
+      userId: user._id,
+      token,
+      expiresAt,
+    })
+
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`
+
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetUrl)
+    } catch (emailErr) {
+      // Email failed — delete the token so user can try again
+      await PasswordReset.deleteMany({ userId: user._id })
+      sendError(res, 'Failed to send reset email. Please try again later.', 500)
+      return
+    }
+
+    sendSuccess(
+      res,
+      null,
+      200,
+      'If an account with that email exists, a reset link has been sent.'
+    )
+  } catch (err: any) {
+    sendError(res, err.message || 'Something went wrong', 500)
+  }
+}
+
+// ─── RESET PASSWORD ─────────────────────────────────────────────────────────
+// POST /api/auth/reset-password
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, password } = req.body
+
+    if (!token || !password) {
+      sendError(res, 'Token and new password are required')
+      return
+    }
+
+    if (password.length < 6) {
+      sendError(res, 'Password must be at least 6 characters')
+      return
+    }
+
+    // Find valid token
+    const resetRecord = await PasswordReset.findOne({ token, used: false })
+
+    if (!resetRecord) {
+      sendError(res, 'Invalid or expired reset link. Please request a new one.', 400)
+      return
+    }
+
+    if (new Date() > resetRecord.expiresAt) {
+      await resetRecord.deleteOne()
+      sendError(res, 'This reset link has expired. Please request a new one.', 410)
+      return
+    }
+
+    // Find the user
+    const user = await User.findById(resetRecord.userId)
+    if (!user) {
+      sendError(res, 'Account not found', 404)
+      return
+    }
+
+    // Hash and save new password
+    const hashed  = await hashPassword(password)
+    user.password = hashed
+    await user.save()
+
+    // Mark token as used
+    resetRecord.used = true
+    await resetRecord.save()
+
+    // Sign a new JWT so they are logged in immediately after reset
+    const authToken = signToken(user._id, user.role)
+
+    sendSuccess(
+      res,
+      { user: user.toJSON(), token: authToken },
+      200,
+      'Password reset successfully'
+    )
+  } catch (err: any) {
+    sendError(res, err.message || 'Reset failed', 500)
+  }
+}
+
+// ─── VALIDATE RESET TOKEN (frontend checks before showing form) ─────────────
+// GET /api/auth/validate-reset-token?token=xxx
+export const validateResetToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.query as { token: string }
+
+    if (!token) {
+      sendError(res, 'Token is required')
+      return
+    }
+
+    const record = await PasswordReset.findOne({ token, used: false })
+
+    if (!record) {
+      sendError(res, 'Invalid or expired reset link', 400)
+      return
+    }
+
+    if (new Date() > record.expiresAt) {
+      sendError(res, 'This reset link has expired', 410)
+      return
+    }
+
+    sendSuccess(res, { valid: true, expiresAt: record.expiresAt }, 200, 'Token is valid')
+  } catch (err: any) {
+    sendError(res, err.message, 500)
   }
 }
